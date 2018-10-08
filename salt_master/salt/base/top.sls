@@ -1,7 +1,8 @@
 base:
     "*":
         -   utils
-    "*master*":
+        -   repos
+    "salt":
         -   nginx
-    "elk":
+    "slave-1":
         -   elk

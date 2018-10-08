@@ -1,5 +1,5 @@
-install-utils:
-    pkg.intalled:
-        -   htop
-        -   tcpdump
-        
+install_utils:
+    pkg.installed:
+        -   pkgs:
+            -   htop
+            -   tcpdump
