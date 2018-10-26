@@ -53,4 +53,3 @@ mv /etc/foundationdb/fdb.cluster /etc/foundationdb/fdb.cluster.orig
 cat <<EOFC>> /etc/foundationdb/fdb.cluster
 N9XJO3zE:tnH0tzDU9cpzPiPe0hUDNtxbdxvAYQA4@192.168.1.11:4500,192.168.1.12:4500,192.168.1.13:4500
 EOFC
-
