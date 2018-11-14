@@ -10,9 +10,33 @@ Vagrant.configure("2") do |config|
                     path: "provision.sh"
             node.vm.provider :virtualbox do |vb|
                 vb.memory = 1024
-                vb.cpus = 1
+                vb.cpus = 2
                 vb.name = "node-#{i}"
             end
+        end
+    end
+    config.vm.define "nat" do |nat|
+        nat.vm.hostname = "nat"
+        nat.vm.network :private_network,
+                ip: "192.168.0.13"
+        nat.vm.provision "shell",
+                path: "nat-provision.sh"
+        nat.vm.provider :virtualbox do |vb|
+            vb.memory = 1024
+            vb.cpus = 2
+            vb.name = "nat"
+        end
+    end
+    config.vm.define "client" do |cli|
+        cli.vm.hostname = "cli"
+        cli.vm.network :private_network,
+                ip: "192.168.0.12"
+        cli.vm.provision "shell",
+                path: "cli-provision.sh"
+        cli.vm.provider :virtualbox do |vb|
+            vb.memory = 1024
+            vb.cpus = 2
+            vb.name = "cli"
         end
     end
 end
