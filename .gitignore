@@ -1,4 +1,4 @@
 .vagrant
 *.log
 *.kate-swp
-fdb
+*.deb
