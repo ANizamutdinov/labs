@@ -3,3 +3,6 @@ htop:
 
 python-pip:
     pkg.installed
+
+tcpdump:
+    pkg.installed

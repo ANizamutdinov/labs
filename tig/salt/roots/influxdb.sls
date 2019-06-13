@@ -21,10 +21,10 @@ add_influx_db:
         -   require:
             -   pip: influxdb
 
-add_telegraf_user:
+add_dbuser_telegraf:
     influxdb_user.present:
         -   name: telegraf
-        -   password: somepassword
+        -   passwd: somepassword
         -   admin: False
         -   grants:
                 telegraf: all
@@ -32,10 +32,10 @@ add_telegraf_user:
             -   pip: influxdb
             -   influxdb_database: telegraf
             
-add_grafana_user:
+add_dbuser_grafana:
     influxdb_user.present:
         -   name: grafana
-        -   password: somepass
+        -   passwd: somepass
         -   admin: False
         -   grants:
                 telegraf: read

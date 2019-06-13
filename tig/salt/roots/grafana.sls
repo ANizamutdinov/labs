@@ -9,6 +9,7 @@ grafana_repo:
 install_grafana:
     pkg.installed:
         -   name: grafana
+        -   skip_verify: True
 
 launch_grafana:
     service.running:
@@ -25,6 +26,36 @@ launch_grafana:
         -   watch_in:
             -   service: grafana-server
 
+sleep:
+    cmd.run:
+        -   name: sleep 10
+
+add_grafana_user:
+    grafana4_user.present:
+        -   name: 'sumgan'
+        -   password: 'passw0rd'
+        -   email: 'sumgan@localhost'
+        -   is_admin: True
+        -   fullname: 'Artur Nizamutdinov'
+        -   require:
+            -   cmd: sleep
+        -   profile:
+                grafana_url: http://10.0.2.15:3000
+                grafana_user: admin
+                grafana_password: admin
+
+add_grafana_org:
+    grafana4_org.present:
+        -   name: 'TestOrg'
+        -   users:
+                sumgan: Admin
+        -   require:
+            -   cmd: sleep
+        -   profile:
+                grafana_url: http://10.0.2.15:3000
+                grafana_user: admin
+                grafana_password: admin
+
 add_influx_datasource:
     grafana4_datasource.present:
         -   name: influxdb
@@ -35,29 +66,9 @@ add_influx_datasource:
         -   user: grafana
         -   password: somepassword
         -   is_default: True
+        -   require:
+            -   cmd: sleep
         -   profile:
                 grafana_url: http://10.0.2.15:3000
                 grafana_user: admin
                 grafana_password: admin
-
-#add_grafana_user:
-    #grafana4_user.present:
-        #-   name: 'sumgan'
-        #-   password: 'passw0rd'
-        #-   email: 'sumgan@localhost'
-        #-   is_admin: True
-        #-   fullname: 'Artur Nizamutdinov'
-        #-   profile:
-                #grafana_url: http://10.0.2.15:3000
-                #grafana_user: admin
-                #grafana_password: gadmin
-
-#add_grafana_org:
-    #grafana4_org.present:
-        #-   name: 'TestOrg'
-        #-   users:
-                #sumgan: Admin
-        #-   profile:
-                #grafana_url: http://10.0.2.15:3000
-                #grafana_user: admin
-                #grafana_password: gadmin
