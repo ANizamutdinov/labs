@@ -1,9 +1,9 @@
 grafana_repo:
     pkgrepo.managed:
         -   humanname: grafana
-        -   name: deb https://packagecloud.io/grafana/stable/debian/ stretch main
+        -   name: deb https://packages.grafana.com/oss/deb stable main
         -   file: /etc/apt/sources.list.d/grafana.list
-        -   key_url: https://packagecloud.io/gpg.key
+        -   key_url: https://packages.grafana.com/gpg.key
         -   refresh: True
         
 install_grafana:

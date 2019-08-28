@@ -1,9 +1,10 @@
 base:
     '*':
         -   util
+    'grafana':
         -   repos
         -   telegraf
-    'grafana':
         -   grafana
     'influxdb':
+        -   repos
         -   influxdb

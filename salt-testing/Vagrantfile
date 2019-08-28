@@ -4,10 +4,17 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "/home/sumgan/workspace/proj/saltstack/", "/srv"
 
   config.vm.define :saltmaster do |sm|
-    sm.vm.provider :virtualbox do |vm|
-      vm.name = "salt-master"
-      vm.cpus = 2
-      vm.memory = 2048
+    sm.vm.provider :virtualbox do |vb|
+
+      second_disk = 'disk2.vdi'
+      unless File.exist?(second_disk)
+        vb.customize ['createhd', '--filename', second_disk, '--format', 'VDI', '--size', 8192]
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', 0, '--device', 1, '--type', 'hdd', '--medium', second_disk]
+
+      vb.name = "salt-master"
+      vb.cpus = 2
+      vb.memory = 2048
     end
     sm.vm.hostname = "salt"
     sm.vm.provision "shell",
