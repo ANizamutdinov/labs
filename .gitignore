@@ -4,3 +4,4 @@
 *.deb
 fdbmon
 *.vdi
+.idea/*
