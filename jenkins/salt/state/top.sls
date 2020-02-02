@@ -1,4 +1,0 @@
-base:
-    'jenkins':
-        -   util
-        -   jenkins

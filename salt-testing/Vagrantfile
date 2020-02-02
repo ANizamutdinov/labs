@@ -1,23 +1,88 @@
-
 Vagrant.configure("2") do |config|
-  config.vm.box = "generic/debian9"
-  config.vm.synced_folder "/home/sumgan/workspace/proj/saltstack/", "/srv"
+
+  config.vm.box_check_update = false
+
+  config.vm.define "win-minion", primary: true do |winmin|
+    winmin.windows.set_work_network = true
+    winmin.vm.communicator = 'winrm'
+    winmin.vm.box = "file:/home/sumgan/soft/os/wsrv2012r2"
+    winmin.vm.guest = :windows
+    winmin.vm.hostname = 'win-minion'
+    winmin.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
+    winmin.vm.network :forwarded_port, guest: 3389, host: 3389, id: "rdp", auto_correct: true
+    winmin.vm.network :private_network, ip: "192.168.1.12"
+
+    winmin.vm.provider :virtualbox do |vb|
+      vb.name = 'salt-minion-windows'
+      vb.cpus = 4
+      vb.memory = 6144
+      vb.gui = false
+      vb.customize ["modifyvm", :id, "--usb", "off"]
+      vb.customize ["modifyvm", :id, "--usbehci", "off"]
+      vb.customize ["modifyvm", :id, "--usbxhci", "off"]
+      (1..1).each do |i|
+        hdd_name = ".vagrant/win-disk-#{i}.vmdk"
+        unless File.exist?(hdd_name)
+          vb.customize [ "createmedium", "disk", "--filename", hdd_name, "--format", "vmdk", "--size", 256 ]
+        end
+        vb.customize ['storageattach', :id , '--storagectl', 'SATA', '--port', "#{i+1}", '--device', '0', '--type', 'hdd', '--medium', hdd_name]
+      end
+    end
+
+    winmin.vm.provision 'shell', inline: <<-SHELL
+      Write-Host Hello from ($env:computername)!
+      Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+      choco upgrade chocolatey -y
+      choco install saltminion -y
+      Set-Content -Path 'C:\\salt\\conf\\minion.d\\master.conf' -Value 'master: 192.168.1.11'
+      Set-Content -Path 'C:\\salt\\conf\\minion_id' -Value 'dev-all-w42'
+      cat C:\\salt\\conf\\minion.d\\master.conf
+      cat C:\\salt\\conf\\minion_id
+      Restart-Service salt-minion
+    SHELL
+  end
 
   config.vm.define :saltmaster do |sm|
+    sm.vm.box = "ubuntu/bionic64"
+    sm.vm.synced_folder "/home/sumgan/workspace/proj/saltstack/", "/srv"
+    sm.vm.network :private_network, ip: "192.168.1.11"
     sm.vm.provider :virtualbox do |vb|
 
-      second_disk = 'disk2.vdi'
-      unless File.exist?(second_disk)
-        vb.customize ['createhd', '--filename', second_disk, '--format', 'VDI', '--size', 8192]
+      (1..4).each do |i|
+        hdd_name = ".vagrant/disk-#{i}.vmdk"
+        unless File.exist?(hdd_name)
+          vb.customize [ "createmedium", "disk", "--filename", hdd_name, "--format", "vmdk", "--size", 256 ]
+        end
+        vb.customize ['storageattach', :id , '--storagectl', 'SCSI', '--port', "#{i+1}", '--device', '0', '--type', 'hdd', '--medium', hdd_name]
       end
-      vb.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', 0, '--device', 1, '--type', 'hdd', '--medium', second_disk]
 
       vb.name = "salt-master"
       vb.cpus = 2
       vb.memory = 2048
     end
     sm.vm.hostname = "salt"
-    sm.vm.provision "shell",
-      inline: "apt-get -y install curl htop iftop nload dnsutils apt-transport-https python-zmq salt-common salt-minion salt-master python-pygit2"
+    sm.vm.provision "shell", inline: <<-SHELL 
+      wget -O - https://repo.saltstack.com/py3/ubuntu/18.04/amd64/latest/SALTSTACK-GPG-KEY.pub | sudo apt-key add -
+      echo "deb http://repo.saltstack.com/py3/ubuntu/18.04/amd64/latest bionic main" | sudo tee /etc/apt/sources.list.d/saltstack.list
+      apt-get update && apt-get upgrade -yq
+      apt-get -yq install salt-api salt-cloud salt-master salt-minion salt-ssh
+      echo 'file_roots:'           > /etc/salt/master
+      echo '  base:'              >> /etc/salt/master
+      echo '    - /srv/salt'      >> /etc/salt/master
+      echo '    - /srv/formulas'  >> /etc/salt/master
+      echo 'pillar_roots:'        >> /etc/salt/master
+      echo '  base:'              >> /etc/salt/master
+      echo '    - /srv/pillars'   >> /etc/salt/master
+      echo 'timeout: 120'         >> /etc/salt/master
+      echo 'dev-all-l42'           > /etc/salt/minion_id
+      systemctl restart salt-master
+      sleep 20
+      systemctl restart salt-minion
+      salt-run fileserver.update
+      sleep 20
+      salt-key -Ay
+      salt-key -L
+    SHELL
   end
+
 end
