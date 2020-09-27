@@ -1,27 +1,34 @@
 Vagrant.configure("2") do |config|
-
-  config.vm.box_check_update = false
   config.vm.box = "debian/contrib-buster64"
+  config.vm.box_check_update = true
+
+  config.vm.provision :init, type: "shell", path: "provisioning/script/init.sh"
 
   (1..3).each do |i|
-    config.vm.define "dc#{i}" do |dc|
-
-      dc.vm.provider :virtualbox do |vb|
-        vb.cpus = 2
+    config.vm.define "node-#{i}" do |node|
+      node.vm.provider :virtualbox do |vb|
         vb.memory = 1024
-        vb.name = "dc#{i}"
+        vb.cpus = 2
         vb.customize ["modifyvm", :id, "--cpuexecutioncap", "70"]
+        vb.name = "nvc-#{i}"
+      end
+      node.vm.hostname = "nvc-#{i}"
+
+      node.vm.network :private_network, ip: "192.168.42.2#{i}", name: "vboxnet1"
+      node.vm.network :forwarded_port, guest: 8500, host: "850#{i}", protocol: "tcp"
+      node.vm.network :forwarded_port, guest: 8200, host: "820#{i}", protocol: "tcp"
+      node.vm.network :forwarded_port, guest: 4646, host: "464#{i}", protocol: "tcp"
+
+      if i == 1
+        node.vm.provision :consul_bootstrap, run: "never", type: "shell", path: "provisioning/script/consul-bootstrap.sh"
+        node.vm.provision :vault_bootstrap, run: "never", type: "shell", path: "provisioning/script/vault-bootstrap.sh"
       end
 
-      dc.vm.hostname = "dc#{i}"
-      dc.vm.network :private_network,
-                    ip: "192.168.42.12#{i}"
-      dc.vm.network "forwarded_port",
-                    guest: 4646,
-                    host: "4646#{i}",
-                    protocol: "tcp"
-      dc.vm.provision "shell",
-                      path: "provision.sh"
+      node.vm.provision :consul_config, type: "shell", path: "provisioning/script/consul-server-configure.sh"
+      node.vm.provision :consul_set_token, run: "never", type: "shell", path: "provisioning/script/consul-set-node-token.sh"
+      node.vm.provision :vault_config, run: "never", type: "shell", path: "provisioning/script/vault-server-configure.sh"
+      node.vm.provision :vault_unseal, run: "never", type: "shell", path: "provisioning/script/vault-unseal.sh"
+      node.vm.provision :nomad_config, run: "never", type: "shell", path: "provisioning/script/nomad-server-configure.sh"
     end
   end
 end
