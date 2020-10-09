@@ -18,4 +18,10 @@ VAULT_NODE_TOKEN_OUTPUT=$(consul acl token create -token=${CONSUL_MGMT_TOKEN} -d
 VAULT_NODE_TOKEN=$(echo ${VAULT_NODE_TOKEN_OUTPUT} | grep SecretID | cut -d " " -f 4 | sed -e 's/^[[:space:]]*//' )
 
 sed -i "s/token\ =\ .*/token\ =\ \"${VAULT_NODE_TOKEN}\"/g" /vagrant/provisioning/config/vault-node.hcl
-sed -i "s/token\ =\ .*/token\ =\ \"${CONSUL_NODE_TOKEN}\"/g" /vagrant/provisioning/config/nomad-server.hcl
+
+
+consul acl policy create -token=${CONSUL_MGMT_TOKEN} -name nomad-policy -rules @/vagrant/provisioning/config/policy-nomad.hcl
+NOMAD_NODE_TOKEN_OUTPUT=$(consul acl token create -token=${CONSUL_MGMT_TOKEN} -description "Nomad-server token" -policy-name nomad-policy)
+NOMAD_NODE_TOKEN=$(echo ${NOMAD_NODE_TOKEN_OUTPUT} | grep SecretID | cut -d " " -f 4 | sed -e 's/^[[:space:]]*//' )
+
+sed -i "s/token\ =\ .*Consul/token\ =\ \"${NOMAD_NODE_TOKEN}\" # Consul/g" /vagrant/provisioning/config/nomad-server.hcl

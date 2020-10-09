@@ -1,7 +1,7 @@
 storage "consul" {
   address = "10.0.2.15:8500"
   path = "vault"
-  token = "39c4337b-cbd8-310a-feac-b06ad9bd5f1e"
+  token = "d5883e30-2ddc-fd7d-453b-56c2138e26d4"
 }
 listener "tcp" {
   address       = "0.0.0.0:8200"
@@ -10,6 +10,6 @@ listener "tcp" {
 service_registration "consul" {
   address      = "10.0.2.15:8500"
   service_address = ""
-  token = "39c4337b-cbd8-310a-feac-b06ad9bd5f1e"
+  token = "d5883e30-2ddc-fd7d-453b-56c2138e26d4"
 }
 ui = true

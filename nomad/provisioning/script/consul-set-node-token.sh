@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 export CONSUL_HTTP_ADDR=10.0.2.15:8500
-consul acl set-agent-token -token=9c952c2a-7775-527e-a21c-4af42f73ee75 agent 9c659fd3-0804-5b6b-4cbe-d216f7621118
+consul acl set-agent-token -token=98b4320d-def7-317a-5e54-02eb0e3bfcb0 agent a1107c02-c1cf-0b07-8d32-c70dc278d52d
