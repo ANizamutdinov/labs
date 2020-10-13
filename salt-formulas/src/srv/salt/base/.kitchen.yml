@@ -1,0 +1,28 @@
+---
+driver:
+  name: vagrant
+suites:
+  - name: default
+platforms:
+  - name: ubuntu/bionic64
+    provisioner:
+      salt_install: apt
+      salt_apt_repo: http://repo.saltstack.com/py3/ubuntu/18.04/amd64
+      salt_apt_repo_key: https://repo.saltstack.com/py3/ubuntu/18.04/amd64/latest/SALTSTACK-GPG-KEY.pub
+  - name: generic/debian10
+    provisioner:
+      salt_install: apt
+      salt_apt_repo: http://repo.saltstack.com/py3/debian/10/amd64
+      salt_apt_repo_key: https://repo.saltstack.com/py3/debian/10/amd64/latest/SALTSTACK-GPG-KEY.pub
+
+provisioner:
+  name: salt_solo
+  is_file_root: true
+  state_top_from_file: true
+  pillars_from_files:
+    users.sls: test_pillar/users.sls
+  pillars:
+    top.sls:
+      base:
+        '*':
+          - users
